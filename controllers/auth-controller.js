@@ -2,6 +2,7 @@ const HashService = require("../services/Hash-service");
 const OTPService = require("../services/OTP-service");
 const TokenService = require("../services/Token-service");
 const UserService = require("../services/User-service");
+const UserDto = require("../dto/userDto");
 
 class AuthController {
   async sendOtp(req, res) {
@@ -21,13 +22,16 @@ class AuthController {
     const hashedOTP = HashService.hashOTP(data);
 
     try {
-      await OTPService.sendOTPBySMS(phone, OTP);
-      return res.status(200).json({ hash: `${hashedOTP}.${expires}`, phone });
+      // await OTPService.sendOTPBySMS(phone, OTP);
+      return res
+        .status(200)
+        .json({ hash: `${hashedOTP}.${expires}`, phone, OTP });
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: error.message });
     }
   }
+
   async verifyOtp(req, res) {
     const { otp, hash, phone } = req.body;
     if (!otp || !hash || !phone) {
@@ -72,7 +76,8 @@ class AuthController {
       httpOnly: true,
     });
 
-    res.json({ accessToken });
+    const userDto = new UserDto(user);
+    res.json({ accessToken, user: userDto });
   }
 }
 
